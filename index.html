@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ETH6384 — DEMO TEST</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#0b1020;color:#fff}a{color:#a998ff;text-decoration:none}.wrap{max-width:760px;margin:auto;padding:24px 16px}.card{background:#141b2d;border:1px solid #27314a;border-radius:18px;padding:22px;margin:14px 0}.muted{color:#9ca8bd}.input{width:100%;padding:14px;margin:8px 0;background:#0d1424;color:#fff;border:1px solid #34405d;border-radius:10px;font-size:16px}button{border:0;border-radius:10px;padding:13px 18px;font-size:16px}.primary{background:#8d78ff;color:white;width:100%;margin-top:8px}.secondary{background:#27314a;color:white}.danger{background:#5d2630;color:white}.notice{background:#201d36;border:1px solid #544a86;padding:12px;border-radius:10px;margin:12px 0;color:#d9d3ff}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.balance{font-size:28px;font-weight:bold}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.center{text-align:center}.small{font-size:13px}
+</style>
+</head>
+<body><div id="app"></div>
+<script>
+const SUPABASE_URL="https://ulvmypfkobqngnwoiqpe.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_O5vR_kJEU_fQdM6KwX8oSQ_deSx96O9";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const app=document.getElementById("app");
+function login(){app.innerHTML=`<div class="wrap"><div class="card"><div class="center"><h1>Welcome back</h1><p class="muted">DEMO / TEST crypto dashboard</p></div><input id="email" class="input" type="email" placeholder="Email"><input id="password" class="input" type="password" placeholder="Password"><button class="primary" onclick="doLogin()">Sign In</button><p id="msg" class="muted"></p><p class="center">New demo user? <a href="#register">Create account</a></p></div></div>`}
+function register(){app.innerHTML=`<div class="wrap"><div class="card"><div class="center"><h1>Create account</h1><p class="muted">DEMO / TEST platform</p></div><div class="notice">This creates a test account only. No real cryptocurrency is deposited or withdrawn.</div><input id="name" class="input" placeholder="Full name"><input id="email" class="input" type="email" placeholder="Email"><input id="password" class="input" type="password" placeholder="Password (6+ characters)"><button class="primary" onclick="doRegister()">Create Account</button><p id="msg" class="muted"></p><p class="center"><a href="#login">Back to Sign In</a></p></div></div>`}
+async function doLogin(){const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value,msg=document.getElementById("msg");try{const {error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;location.hash="home";render()}catch(e){msg.textContent=e.message}}
+async function doRegister(){const name=document.getElementById("name").value.trim(),email=document.getElementById("email").value.trim(),password=document.getElementById("password").value,msg=document.getElementById("msg");try{if(password.length<6)throw Error("Password must be at least 6 characters");const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:location.origin+location.pathname}});if(error)throw error;if(data.session){location.hash="home";render()}else msg.textContent="Account created. Please check your email to confirm your account."}catch(e){msg.textContent=e.message}}
+async function logout(){await sb.auth.signOut();location.hash="login";render()}
+async function home(){const {data,error}=await sb.auth.getUser();if(error||!data.user){location.hash="login";return render()}const user=data.user,name=user.user_metadata?.full_name||user.email||"Demo User";app.innerHTML=`<div class="wrap"><div class="row"><div><h1>Demo Dashboard</h1><p class="muted">${escapeHtml(name)}</p></div><button class="secondary" onclick="logout()">Logout</button></div><div class="notice"><strong>DEMO / TEST PLATFORM</strong><br>No real crypto is deposited, mined, transferred or withdrawn.</div><div class="grid"><div class="card"><p class="muted">ETH Balance</p><div class="balance">0.0000 ETH</div></div><div class="card"><p class="muted">Demo USD Value</p><div class="balance">$0.00</div></div></div><div class="card"><h2>Wallet</h2><p class="muted">Demo wallet only</p><button class="secondary" onclick="alert('Demo only — no real deposit is processed')">Deposit</button> <button class="danger" onclick="alert('Demo only — no real withdrawal is processed')">Withdraw</button></div><div class="card"><h2>Transactions</h2><p class="muted">No demo transactions yet</p></div><div class="card"><h2>Account</h2><p class="small">Email: ${escapeHtml(user.email||"")}</p><p class="small">User ID: ${escapeHtml(user.id)}</p></div></div>`}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+async function render(){const {data}=await sb.auth.getSession(),h=location.hash.slice(1);if(h==="register")return register();if(h==="home"&&data.session)return home();if(h==="home"&&!data.session){location.hash="login";return login()}return login()}
+window.addEventListener("hashchange",render);sb.auth.onAuthStateChange((_event,session)=>{if(session&&location.hash!=="#home")location.hash="home"});render();
+</script>
+</body></html>
