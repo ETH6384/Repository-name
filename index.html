@@ -1,112 +1,468 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ETHIO — Crypto Platform</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#0b1020;color:#fff}a{color:#a998ff;text-decoration:none}.wrap{max-width:760px;margin:auto;padding:24px 16px}.card{background:#141b2d;border:1px solid #27314a;border-radius:18px;padding:22px;margin:14px 0}.muted{color:#9ca8bd}.input{width:100%;padding:14px;margin:8px 0;background:#0d1424;color:#fff;border:1px solid #34405d;border-radius:10px;font-size:16px}button{border:0;border-radius:10px;padding:13px 18px;font-size:16px}.primary{background:#8d78ff;color:white;width:100%;margin-top:8px}.secondary{background:#27314a;color:white}.danger{background:#5d2630;color:white}.notice{background:#201d36;border:1px solid #544a86;padding:12px;border-radius:10px;margin:12px 0;color:#d9d3ff}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.balance{font-size:28px;font-weight:bold}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.center{text-align:center}.small{font-size:13px}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#0b1020;
+  color:#fff;
+}
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
+.card{
+  background:#151c30;
+  border:1px solid #27304a;
+  border-radius:18px;
+  padding:22px;
+  margin:15px 0;
+}
+h1{margin-top:0}
+input{
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  border-radius:10px;
+  border:1px solid #37415d;
+  background:#0d1426;
+  color:white;
+  font-size:16px;
+}
+button{
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  border:0;
+  border-radius:10px;
+  background:#2563eb;
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+}
+button.secondary{background:#27304a}
+button.danger{background:#b91c1c}
+.hidden{display:none}
+.balance{
+  font-size:28px;
+  font-weight:bold;
+  margin-top:8px;
+}
+.asset{
+  display:flex;
+  justify-content:space-between;
+  padding:16px 0;
+  border-bottom:1px solid #27304a;
+}
+.small{
+  color:#9ca8c7;
+  font-size:14px;
+}
+.center{text-align:center}
+.error{color:#ff7777}
+.success{color:#65d98a}
 </style>
 </head>
-<body><div id="app"></div>
-<script>
-const SUPABASE_URL="https://ulvmypfkobqngnwoiqpe.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY="sb_publishable_Yljia5UnGwKkT8vOHLEgWQ_K6ZOQF_X";
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-const app=document.getElementById("app");
-<script>
-async function showDashboard(){
-  const {data:{user}}=await sb.auth.getUser();
 
-  if(!user){
-    app.innerHTML=`
+<body>
+
+<div class="container">
+
+  <div id="auth">
+
+    <div class="card">
       <h1>ETHIO</h1>
-      <p>Secure Crypto Platform</p>
-      <button onclick="showLogin()">Sign In</button>
-      <button onclick="showRegister()">Create Account</button>`;
-    return;
-  }
+      <p class="small">Secure Crypto Platform</p>
 
-  const {data:wallets,error}=await sb
-    .from("wallets")
-    .select("asset,balance")
-    .eq("user_id",user.id);
+      <div id="loginBox">
+        <h2>Sign In</h2>
 
-  if(error){
-    app.innerHTML="<h2>Unable to load wallet</h2>";
-    return;
-  }
+        <input id="loginEmail" type="email" placeholder="Email">
+        <input id="loginPassword" type="password" placeholder="Password">
 
-  const eth=wallets.find(w=>w.asset==="ETH");
-  const usdt=wallets.find(w=>w.asset==="USDT");
+        <button onclick="login()">Sign In</button>
+        <button class="secondary" onclick="showRegister()">Create Account</button>
 
-  app.innerHTML=`
-    <h1>ETHIO</h1>
-    <p>Welcome</p>
+        <p id="loginMessage"></p>
+      </div>
 
-    <div>
-      <h3>ETH</h3>
-      <h2>${Number(eth?.balance||0).toFixed(8)}</h2>
+      <div id="registerBox" class="hidden">
+        <h2>Create Account</h2>
+
+        <input id="registerName" type="text" placeholder="Full Name">
+        <input id="registerEmail" type="email" placeholder="Email">
+        <input id="registerPassword" type="password" placeholder="Password">
+
+        <button onclick="register()">Create Account</button>
+        <button class="secondary" onclick="showLogin()">Back to Sign In</button>
+
+        <p id="registerMessage"></p>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div id="dashboard" class="hidden">
+
+    <div class="card">
+      <h1>ETHIO</h1>
+      <p id="userEmail" class="small"></p>
+
+      <button class="danger" onclick="logout()">Sign Out</button>
     </div>
 
-    <div>
-      <h3>USDT</h3>
-      <h2>${Number(usdt?.balance||0).toFixed(2)}</h2>
+
+    <div class="card">
+      <h2>Wallet</h2>
+
+      <div class="asset">
+        <div>
+          <strong>USDT</strong>
+          <div class="small">Tether USD</div>
+        </div>
+        <div id="usdtBalance" class="balance">0.00000000</div>
+      </div>
+
+      <div class="asset">
+        <div>
+          <strong>ETH</strong>
+          <div class="small">Ethereum</div>
+        </div>
+        <div id="ethBalance" class="balance">0.00000000</div>
+      </div>
     </div>
 
-    <button onclick="sb.auth.signOut().then(showDashboard)">
-      Logout
-    </button>
-  `;
+
+    <div class="card">
+      <h2>Account</h2>
+
+      <p class="small">
+        Your account is connected securely with Supabase.
+      </p>
+
+      <p id="accountStatus" class="success">
+        Account connected
+      </p>
+    </div>
+
+
+    <div class="card">
+      <h2>Transactions</h2>
+
+      <div id="transactions">
+        <p class="small">Loading transactions...</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const SUPABASE_URL =
+"https://ulvmypfkobqngnwoiqpe.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+"sb_publishable_O5vR_kJEU_fQdM6KwX8oSQ_deSx96O9";
+
+const sb = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+
+const authBox = document.getElementById("auth");
+const dashboard = document.getElementById("dashboard");
+
+
+function showLogin(){
+
+  document.getElementById("loginBox").classList.remove("hidden");
+  document.getElementById("registerBox").classList.add("hidden");
+
 }
 
-async function showLogin(){
-  app.innerHTML=`
-    <h1>ETHIO Sign In</h1>
-    <input id="email" type="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="login()">Sign In</button>
-    <button onclick="showRegister()">Create Account</button>`;
+
+function showRegister(){
+
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("registerBox").classList.remove("hidden");
+
 }
 
-async function login(){
-  const {error}=await sb.auth.signInWithPassword({
-    email:document.getElementById("email").value,
-    password:document.getElementById("password").value
-  });
-
-  if(error){
-    alert(error.message);
-    return;
-  }
-
-  showDashboard();
-}
-
-async function showRegister(){
-  app.innerHTML=`
-    <h1>Create ETHIO Account</h1>
-    <input id="email" type="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="register()">Create Account</button>
-    <button onclick="showLogin()">Sign In</button>`;
-}
 
 async function register(){
-  const {error}=await sb.auth.signUp({
-    email:document.getElementById("email").value,
-    password:document.getElementById("password").value
-  });
 
-  if(error){
-    alert(error.message);
+  const name =
+    document.getElementById("registerName").value.trim();
+
+  const email =
+    document.getElementById("registerEmail").value.trim();
+
+  const password =
+    document.getElementById("registerPassword").value;
+
+  const message =
+    document.getElementById("registerMessage");
+
+  message.className="";
+  message.textContent="Creating account...";
+
+  if(!email || !password){
+
+    message.className="error";
+    message.textContent="Email and password are required.";
     return;
+
   }
 
-  alert("Account created successfully");
+  const {data,error} = await sb.auth.signUp({
+
+    email:email,
+
+    password:password,
+
+    options:{
+      data:{
+        full_name:name
+      }
+    }
+
+  });
+
+
+  if(error){
+
+    message.className="error";
+    message.textContent=error.message;
+    return;
+
+  }
+
+
+  message.className="success";
+  message.textContent=
+    "Account created successfully. Please check your email if confirmation is required.";
+
   showLogin();
+
 }
 
+
+async function login(){
+
+  const email =
+    document.getElementById("loginEmail").value.trim();
+
+  const password =
+    document.getElementById("loginPassword").value;
+
+  const message =
+    document.getElementById("loginMessage");
+
+  message.className="";
+  message.textContent="Signing in...";
+
+
+  const {data,error} =
+    await sb.auth.signInWithPassword({
+
+      email:email,
+      password:password
+
+    });
+
+
+  if(error){
+
+    message.className="error";
+    message.textContent=error.message;
+    return;
+
+  }
+
+
+  message.className="success";
+  message.textContent="Login successful.";
+
+  await showDashboard();
+
+}
+
+
+async function logout(){
+
+  await sb.auth.signOut();
+
+  dashboard.classList.add("hidden");
+  authBox.classList.remove("hidden");
+
+  showLogin();
+
+}
+
+
+async function showDashboard(){
+
+  const {data:{user}} =
+    await sb.auth.getUser();
+
+
+  if(!user){
+
+    dashboard.classList.add("hidden");
+    authBox.classList.remove("hidden");
+
+    return;
+
+  }
+
+
+  authBox.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+
+
+  document.getElementById("userEmail").textContent =
+    user.email;
+
+
+  await loadWallets();
+  await loadTransactions();
+
+}
+
+
+async function loadWallets(){
+
+  const {data,error} = await sb
+    .from("wallets")
+    .select("asset,balance")
+    .order("asset");
+
+
+  if(error){
+
+    document.getElementById("accountStatus").textContent =
+      "Wallet loading error: " + error.message;
+
+    return;
+
+  }
+
+
+  let usdt = 0;
+  let eth = 0;
+
+
+  for(const wallet of (data || [])){
+
+    if(wallet.asset === "USDT"){
+      usdt = wallet.balance;
+    }
+
+    if(wallet.asset === "ETH"){
+      eth = wallet.balance;
+    }
+
+  }
+
+
+  document.getElementById("usdtBalance").textContent =
+    Number(usdt).toFixed(8);
+
+  document.getElementById("ethBalance").textContent =
+    Number(eth).toFixed(8);
+
+}
+
+
+async function loadTransactions(){
+
+  const box =
+    document.getElementById("transactions");
+
+
+  const {data,error} = await sb
+    .from("transactions")
+    .select("asset,type,amount,status,tx_hash,created_at")
+    .order("created_at",{ascending:false})
+    .limit(20);
+
+
+  if(error){
+
+    box.innerHTML =
+      '<p class="error">Unable to load transactions.</p>';
+
+    return;
+
+  }
+
+
+  if(!data || data.length === 0){
+
+    box.innerHTML =
+      '<p class="small">No transactions yet.</p>';
+
+    return;
+
+  }
+
+
+  box.innerHTML = data.map(tx => `
+
+    <div class="asset">
+
+      <div>
+        <strong>${tx.asset}</strong>
+
+        <div class="small">
+          ${tx.type} · ${tx.status}
+        </div>
+      </div>
+
+      <div>
+        ${Number(tx.amount).toFixed(8)}
+      </div>
+
+    </div>
+
+  `).join("");
+
+}
+
+
+sb.auth.onAuthStateChange((event,session)=>{
+
+  if(session){
+
+    showDashboard();
+
+  }else{
+
+    dashboard.classList.add("hidden");
+    authBox.classList.remove("hidden");
+
+  }
+
+});
+
+
 showDashboard();
+
 </script>
+
+</body>
+</html>
