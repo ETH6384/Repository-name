@@ -15,3 +15,98 @@ const SUPABASE_URL="https://ulvmypfkobqngnwoiqpe.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_Yljia5UnGwKkT8vOHLEgWQ_K6ZOQF_X";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const app=document.getElementById("app");
+<script>
+async function showDashboard(){
+  const {data:{user}}=await sb.auth.getUser();
+
+  if(!user){
+    app.innerHTML=`
+      <h1>ETHIO</h1>
+      <p>Secure Crypto Platform</p>
+      <button onclick="showLogin()">Sign In</button>
+      <button onclick="showRegister()">Create Account</button>`;
+    return;
+  }
+
+  const {data:wallets,error}=await sb
+    .from("wallets")
+    .select("asset,balance")
+    .eq("user_id",user.id);
+
+  if(error){
+    app.innerHTML="<h2>Unable to load wallet</h2>";
+    return;
+  }
+
+  const eth=wallets.find(w=>w.asset==="ETH");
+  const usdt=wallets.find(w=>w.asset==="USDT");
+
+  app.innerHTML=`
+    <h1>ETHIO</h1>
+    <p>Welcome</p>
+
+    <div>
+      <h3>ETH</h3>
+      <h2>${Number(eth?.balance||0).toFixed(8)}</h2>
+    </div>
+
+    <div>
+      <h3>USDT</h3>
+      <h2>${Number(usdt?.balance||0).toFixed(2)}</h2>
+    </div>
+
+    <button onclick="sb.auth.signOut().then(showDashboard)">
+      Logout
+    </button>
+  `;
+}
+
+async function showLogin(){
+  app.innerHTML=`
+    <h1>ETHIO Sign In</h1>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Sign In</button>
+    <button onclick="showRegister()">Create Account</button>`;
+}
+
+async function login(){
+  const {error}=await sb.auth.signInWithPassword({
+    email:document.getElementById("email").value,
+    password:document.getElementById("password").value
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  showDashboard();
+}
+
+async function showRegister(){
+  app.innerHTML=`
+    <h1>Create ETHIO Account</h1>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="register()">Create Account</button>
+    <button onclick="showLogin()">Sign In</button>`;
+}
+
+async function register(){
+  const {error}=await sb.auth.signUp({
+    email:document.getElementById("email").value,
+    password:document.getElementById("password").value
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Account created successfully");
+  showLogin();
+}
+
+showDashboard();
+</script>
