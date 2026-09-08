@@ -114,7 +114,127 @@ button.danger{background:#b91c1c}
 
   <div id="dashboard" class="hidden">
 
+<div class="card">
+  <h1>ETHIO</h1>
+  <p class="small">Secure Crypto Platform</p>
+  <p id="userEmail" class="small"></p>
+  <button class="danger" onclick="logout()">Sign Out</button>
+</div>
 
+<div class="card">
+  <input
+    id="coinSearch"
+    type="text"
+    placeholder="🔍 Search crypto"
+    oninput="filterCoins()"
+    style="width:100%;padding:15px;border-radius:15px;border:1px solid #444;background:#151515;color:white;font-size:16px;"
+  >
+</div>
+
+<div class="card">
+  <div style="display:flex;gap:25px;overflow-x:auto;padding:5px 0;">
+    <b>⭐ Favorites</b>
+    <span>New</span>
+    <span>Crypto</span>
+    <span>Markets</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Markets</h2>
+
+  <div id="coinList">
+
+    <div class="coin-row" data-coin="BTC">
+      <div>
+        <strong>₿ BTC</strong>
+        <div class="small">BTC / USDT</div>
+      </div>
+      <strong id="btcPrice">Loading...</strong>
+    </div>
+
+    <div class="coin-row" data-coin="ETH">
+      <div>
+        <strong>Ξ ETH</strong>
+        <div class="small">ETH / USDT</div>
+      </div>
+      <strong id="ethPrice">Loading...</strong>
+    </div>
+
+    <div class="coin-row" data-coin="BNB">
+      <div>
+        <strong>◆ BNB</strong>
+        <div class="small">BNB / USDT</div>
+      </div>
+      <strong id="bnbPrice">Loading...</strong>
+    </div>
+
+    <div class="coin-row" data-coin="SOL">
+      <div>
+        <strong>◎ SOL</strong>
+        <div class="small">SOL / USDT</div>
+      </div>
+      <strong id="solPrice">Loading...</strong>
+    </div>
+
+    <div class="coin-row" data-coin="XRP">
+      <div>
+        <strong>◉ XRP</strong>
+        <div class="small">XRP / USDT</div>
+      </div>
+      <strong id="xrpPrice">Loading...</strong>
+    </div>
+
+    <div class="coin-row" data-coin="DOGE">
+      <div>
+        <strong>Ð DOGE</strong>
+        <div class="small">DOGE / USDT</div>
+      </div>
+      <strong id="dogePrice">Loading...</strong>
+    </div>
+
+  </div>
+</div>
+
+<div class="card">
+  <h2>Wallet</h2>
+
+  <div class="coin-row">
+    <div>
+      <strong>USDT</strong>
+      <div class="small">Tether USD</div>
+    </div>
+    <strong id="usdtBalance">0.00000000</strong>
+  </div>
+
+  <div class="coin-row">
+    <div>
+      <strong>ETH</strong>
+      <div class="small">Ethereum</div>
+    </div>
+    <strong id="ethBalance">0.00000000</strong>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Transactions</h2>
+  <div id="transactions">
+    <p class="small">Loading transactions...</p>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Earn</h2>
+  <p class="small">Explore available earning products</p>
+</div>
+
+<div style="display:flex;justify-content:space-around;position:sticky;bottom:0;background:#111;padding:15px;border-radius:20px;margin-top:20px;">
+  <b>⌂<br><small>Home</small></b>
+  <b>▦<br><small>Markets</small></b>
+  <b>⇄<br><small>Trade</small></b>
+  <b>◉<br><small>Earn</small></b>
+  <b>◫<br><small>Assets</small></b>
+</div>
 </div>
 
 
