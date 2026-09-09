@@ -70,10 +70,11 @@ button.danger{background:#b91c1c}
 .center{text-align:center}
 .error{color:#ff7777}
 .success{color:#65d98a}
-</style>
+/* ETHIO Wallet Design */
 body {
   background: #0b0d10 !important;
-  color: white !important;
+  color: #ffffff !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 
 .card {
@@ -82,10 +83,25 @@ body {
   border-radius: 20px !important;
   padding: 18px !important;
   margin-bottom: 14px !important;
+  box-shadow: none !important;
+}
+
+h1 {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+}
+
+h2 {
+  font-size: 20px !important;
+  margin-bottom: 16px !important;
 }
 
 .small {
   color: #8d96a3 !important;
+}
+
+input {
+  box-sizing: border-box !important;
 }
 
 .coin-row {
@@ -96,10 +112,33 @@ body {
   border-bottom: 1px solid #252a31 !important;
 }
 
+.coin-row:last-child {
+  border-bottom: none !important;
+}
+
 button {
   border-radius: 14px !important;
+  padding: 13px 18px !important;
   font-weight: 600 !important;
 }
+
+.danger {
+  background: #20252c !important;
+  color: white !important;
+  border: 1px solid #303640 !important;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 10px !important;
+  }
+
+  .card {
+    border-radius: 18px !important;
+    padding: 16px !important;
+  }
+}
+</style>
 </head>
 
 <body>
