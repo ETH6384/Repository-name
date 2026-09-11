@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETHIO — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --blue-900:#0f2440;
+  --blue-700:#1c4ed8;
+  --blue-500:#1c64f2;
+  --blue-300:#7bb4ff;
+  --blue-100:#eaf3ff;
+  --bg:#eef5ff;
+  --surface:#ffffff;
+  --border:#dbe8fb;
+  --text:#0f2440;
+  --muted:#66789c;
+  --success:#0ea968;
+  --danger:#e0483e;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
+body{background:var(--bg);color:var(--text);}
+.hidden{display:none !important;}
+input,select{
+  width:100%;padding:10px 12px;margin:5px 0;border-radius:10px;
+  border:1px solid var(--border);background:var(--blue-100);color:var(--text);font-size:14px;
+}
+button{
+  padding:9px 14px;border:0;border-radius:10px;font-size:13px;font-weight:600;
+  cursor:pointer;background:var(--blue-500);color:#fff;
+}
+button.secondary{background:var(--blue-100);color:var(--blue-500);}
+.msg{font-size:13px;margin-top:6px;}
+.msg.error{color:var(--danger);}
+.msg.success{color:var(--success);}
+
+/* login */
+.auth-wrap{max-width:380px;margin:60px auto;padding:0 20px;}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;box-shadow:0 10px 30px rgba(28,100,242,.08);}
+.auth-card h1{color:var(--blue-500);margin-bottom:4px;}
+.auth-card p{color:var(--muted);font-size:13px;margin-bottom:16px;}
+
+/* layout */
+.top{
+  background:linear-gradient(135deg,var(--blue-500),var(--blue-300));
+  color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
+}
+.top h1{font-size:18px;}
+.top button{background:rgba(255,255,255,.2);color:#fff;}
+.tabs{display:flex;gap:8px;padding:14px 20px 0;max-width:1000px;margin:0 auto;}
+.tab{padding:9px 16px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;}
+.tab.active{background:var(--blue-500);color:#fff;border-color:var(--blue-500);}
+.wrap{max-width:1000px;margin:0 auto;padding:16px 20px 60px;}
+.panel{display:none;}
+.panel.active{display:block;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;}
+
+/* chats layout */
+.chat-layout{display:flex;gap:14px;height:70vh;}
+.thread-list{width:260px;overflow-y:auto;border-right:1px solid var(--border);padding-right:10px;flex-shrink:0;}
+.thread-item{padding:10px;border-radius:10px;cursor:pointer;margin-bottom:4px;}
+.thread-item:hover,.thread-item.active{background:var(--blue-100);}
+.thread-item .email{font-size:13px;font-weight:600;}
+.thread-item .preview{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chat-area{flex:1;display:flex;flex-direction:column;}
+.chat-messages{flex:1;overflow-y:auto;padding:10px;background:var(--bg);border-radius:12px;display:flex;flex-direction:column;gap:8px;}
+.chat-msg{max-width:75%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.4;}
+.chat-msg.user{align-self:flex-start;background:var(--surface);border:1px solid var(--border);}
+.chat-msg.agent{align-self:flex-end;background:var(--blue-500);color:#fff;}
+.chat-input-row{display:flex;gap:8px;margin-top:10px;}
+.chat-input-row input{margin:0;flex:1;}
+.chat-input-row button{width:auto;}
+
+/* wallets */
+.user-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.user-row:last-child{border-bottom:0;}
+.balance-grid{display:grid;grid-template-columns:70px 1fr 80px;gap:8px;align-items:center;margin:6px 0;}
+.balance-grid input{margin:0;}
+.balance-grid button{width:auto;}
+
+/* transactions */
+.tx-table{width:100%;border-collapse:collapse;font-size:13px;}
+.tx-table th{text-align:left;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--border);}
+.tx-table td{padding:8px;border-bottom:1px solid var(--border);}
+.tx-table select{margin:0;padding:6px 8px;font-size:12px;}
+</style>
+</head>
+<body>
+
+<div id="auth" class="auth-wrap">
+  <div class="auth-card">
+    <h1>ETHIO Admin</h1>
+    <p>Sign in with your admin account</p>
+    <input id="loginEmail" type="email" placeholder="Email">
+    <input id="loginPassword" type="password" placeholder="Password">
+    <button style="width:100%;margin-top:6px;" onclick="login()">Sign In</button>
+    <p id="loginMessage" class="msg"></p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="top">
+    <h1>ETHIO — Admin</h1>
+    <button onclick="logout()">Sign Out</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-panel="chats" onclick="setTab(this)">Support Chats</div>
+    <div class="tab" data-panel="wallets" onclick="setTab(this)">Wallets</div>
+    <div class="tab" data-panel="transactions" onclick="setTab(this)">Transactions</div>
+  </div>
+
+  <div class="wrap">
+    <!-- CHATS -->
+    <div class="panel active" id="panel-chats">
+      <div class="card chat-layout">
+        <div class="thread-list" id="threadList">
+          <p class="msg" style="color:var(--muted);">Loading conversations...</p>
+        </div>
+        <div class="chat-area">
+          <div class="chat-messages" id="adminChatMessages">
+            <p class="msg" style="color:var(--muted);">Select a conversation on the left.</p>
+          </div>
+          <div class="chat-input-row">
+            <input id="adminChatInput" type="text" placeholder="Type a reply..." onkeydown="if(event.key==='Enter')sendAgentReply()">
+            <button onclick="sendAgentReply()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WALLETS -->
+    <div class="panel" id="panel-wallets">
+      <div class="card">
+        <h3 style="margin-bottom:8px;">Users</h3>
+        <div id="userList"><p class="msg" style="color:var(--muted);">Loading users...</p></div>
+      </div>
+      <div class="card hidden" id="walletEditCard">
+        <h3 id="walletEditTitle" style="margin-bottom:8px;"></h3>
+        <div id="walletFields"></div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="panel" id="panel-transactions">
+      <div class="card">
+        <h3 style="margin-bottom:8px;">All Transactions</h3>
+        <div style="overflow-x:auto;">
+          <table class="tx-table" id="txTable">
+            <thead><tr><th>User</th><th>Asset</th><th>Type</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <tbody id="txBody"><tr><td colspan="6">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://lwbgnjsmceafjzakcmnn.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_O5vR_kJEU_fQdM6KwX8oSQ_deSx96O9";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const COINS = ["BTC","ETH","USDT","BNB","SOL","XRP","DOGE"];
+let profilesById = {};
+let activeThreadUserId = null;
+
+/* ---------------- Auth ---------------- */
+async function login(){
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const message = document.getElementById("loginMessage");
+  message.className = "msg";
+  message.textContent = "Signing in...";
+
+  const {error} = await sb.auth.signInWithPassword({email, password});
+  if(error){
+    message.className = "msg error";
+    message.textContent = error.message;
+    return;
+  }
+
+  const {data:{user}} = await sb.auth.getUser();
+  const {data: profile, error: profileError} = await sb
+    .from("profiles").select("is_admin").eq("id", user.id).single();
+
+  if(profileError || !profile?.is_admin){
+    message.className = "msg error";
+    message.textContent = "This account isn't an admin. Ask the owner to enable admin access in Supabase.";
+    await sb.auth.signOut();
+    return;
+  }
+
+  message.textContent = "";
+  document.getElementById("auth").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  await loadProfiles();
+  await loadThreads();
+  await loadUserList();
+  await loadTransactions();
+  subscribeRealtime();
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("auth").classList.remove("hidden");
+}
+
+sb.auth.getSession().then(async ({data:{session}}) => {
+  if(!session) return;
+  const {data: profile} = await sb.from("profiles").select("is_admin").eq("id", session.user.id).single();
+  if(profile?.is_admin){
+    document.getElementById("auth").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    await loadProfiles();
+    await loadThreads();
+    await loadUserList();
+    await loadTransactions();
+    subscribeRealtime();
+  }
+});
+
+/* ---------------- Tabs ---------------- */
+function setTab(el){
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("panel-" + el.dataset.panel).classList.add("active");
+}
+
+/* ---------------- Shared: profiles lookup ---------------- */
+async function loadProfiles(){
+  const {data} = await sb.from("profiles").select("id,email,full_name");
+  profilesById = {};
+  (data || []).forEach(p => profilesById[p.id] = p);
+}
+function emailFor(userId){
+  return profilesById[userId]?.email || userId.slice(0,8) + "...";
+}
+
+/* ---------------- Support chats ---------------- */
+async function loadThreads(){
+  const box = document.getElementById("threadList");
+  const {data, error} = await sb
+    .from("support_messages")
+    .select("user_id,message,created_at")
+    .order("created_at", {ascending:false});
+
+  if(error){
+    box.innerHTML = `<p class="msg error">${error.message}</p>`;
+    return;
+  }
+
+  const seen = new Set();
+  const threads = [];
+  (data || []).forEach(m => {
+    if(!seen.has(m.user_id)){
+      seen.add(m.user_id);
+      threads.push(m);
+    }
+  });
+
+  if(threads.length === 0){
+    box.innerHTML = `<p class="msg" style="color:var(--muted);">No conversations yet.</p>`;
+    return;
+  }
+
+  box.innerHTML = threads.map(t => `
+    <div class="thread-item ${t.user_id === activeThreadUserId ? 'active' : ''}" onclick="openThread('${t.user_id}')">
+      <div class="email">${emailFor(t.user_id)}</div>
+      <div class="preview">${t.message}</div>
+    </div>
+  `).join("");
+}
+
+async function openThread(userId){
+  activeThreadUserId = userId;
+  document.querySelectorAll(".thread-item").forEach(el => el.classList.remove("active"));
+  await loadThreads();
+
+  const box = document.getElementById("adminChatMessages");
+  box.innerHTML = `<p class="msg" style="color:var(--muted);">Loading...</p>`;
+
+  const {data, error} = await sb
+    .from("support_messages")
+    .select("sender,message,created_at")
+    .eq("user_id", userId)
+    .order("created_at", {ascending:true});
+
+  if(error){
+    box.innerHTML = `<p class="msg error">${error.message}</p>`;
+    return;
+  }
+  box.innerHTML = "";
+  (data || []).forEach(m => {
+    const div = document.createElement("div");
+    div.className = "chat-msg " + m.sender;
+    div.textContent = m.message;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendAgentReply(){
+  if(!activeThreadUserId) return;
+  const input = document.getElementById("adminChatInput");
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = "";
+
+  const {error} = await sb.from("support_messages").insert({
+    user_id: activeThreadUserId,
+    sender: "agent",
+    message: text
+  });
+
+  if(error){
+    alert("Couldn't send: " + error.message);
+    return;
+  }
+  await openThread(activeThreadUserId);
+}
+
+function subscribeRealtime(){
+  sb.channel("admin-support")
+    .on("postgres_changes", {event:"INSERT", schema:"public", table:"support_messages"}, payload => {
+      if(payload.new.user_id === activeThreadUserId){
+        const box = document.getElementById("adminChatMessages");
+        const div = document.createElement("div");
+        div.className = "chat-msg " + payload.new.sender;
+        div.textContent = payload.new.message;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+      }
+      loadThreads();
+    })
+    .subscribe();
+}
+
+/* ---------------- Wallets ---------------- */
+async function loadUserList(){
+  const box = document.getElementById("userList");
+  const list = Object.values(profilesById);
+  if(list.length === 0){
+    box.innerHTML = `<p class="msg" style="color:var(--muted);">No users yet.</p>`;
+    return;
+  }
+  box.innerHTML = list.map(p => `
+    <div class="user-row" onclick="openWallet('${p.id}','${(p.email||'').replace(/'/g,"")}')">
+      <span>${p.email || p.id}</span>
+      <button class="secondary">Edit balances</button>
+    </div>
+  `).join("");
+}
+
+async function openWallet(userId, email){
+  document.getElementById("walletEditCard").classList.remove("hidden");
+  document.getElementById("walletEditTitle").textContent = "Balances — " + email;
+
+  const {data, error} = await sb.from("wallets").select("asset,balance").eq("user_id", userId);
+  const balances = {};
+  (data || []).forEach(w => balances[w.asset] = w.balance);
+
+  const fields = document.getElementById("walletFields");
+  fields.innerHTML = COINS.map(c => `
+    <div class="balance-grid">
+      <strong>${c}</strong>
+      <input id="bal-${c}" type="number" step="any" value="${Number(balances[c] || 0)}">
+      <button onclick="saveBalance('${userId}','${c}')">Save</button>
+    </div>
+  `).join("") + `<p id="walletSaveMsg" class="msg"></p>`;
+}
+
+async function saveBalance(userId, asset){
+  const val = Number(document.getElementById("bal-" + asset).value);
+  const msg = document.getElementById("walletSaveMsg");
+  const {error} = await sb.from("wallets")
+    .upsert({user_id: userId, asset: asset, balance: val}, {onConflict: "user_id,asset"});
+
+  if(error){
+    msg.className = "msg error";
+    msg.textContent = error.message;
+    return;
+  }
+  msg.className = "msg success";
+  msg.textContent = asset + " balance updated.";
+}
+
+/* ---------------- Transactions ---------------- */
+async function loadTransactions(){
+  const body = document.getElementById("txBody");
+  const {data, error} = await sb
+    .from("transactions")
+    .select("id,user_id,asset,type,amount,status,created_at")
+    .order("created_at", {ascending:false})
+    .limit(100);
+
+  if(error){
+    body.innerHTML = `<tr><td colspan="6" class="msg error">${error.message}</td></tr>`;
+    return;
+  }
+  if(!data || data.length === 0){
+    body.innerHTML = `<tr><td colspan="6">No transactions yet.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = data.map(tx => `
+    <tr>
+      <td>${emailFor(tx.user_id)}</td>
+      <td>${tx.asset}</td>
+      <td>${tx.type}</td>
+      <td>${Number(tx.amount).toFixed(8)}</td>
+      <td>
+        <select id="status-${tx.id}">
+          <option value="pending" ${tx.status==='pending'?'selected':''}>pending</option>
+          <option value="completed" ${tx.status==='completed'?'selected':''}>completed</option>
+          <option value="failed" ${tx.status==='failed'?'selected':''}>failed</option>
+        </select>
+      </td>
+      <td><button onclick="saveTxStatus('${tx.id}')">Save</button></td>
+    </tr>
+  `).join("");
+}
+
+async function saveTxStatus(id){
+  const status = document.getElementById("status-" + id).value;
+  const {error} = await sb.from("transactions").update({status}).eq("id", id);
+  if(error){ alert("Couldn't update: " + error.message); return; }
+  await loadTransactions();
+}
+</script>
+</body>
+</html>
