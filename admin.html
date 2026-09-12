@@ -187,9 +187,21 @@ async function login(){
   const {data: profile, error: profileError} = await sb
     .from("profiles").select("is_admin").eq("id", user.id).single();
 
-  if(profileError || !profile?.is_admin){
+  if(profileError){
     message.className = "msg error";
-    message.textContent = "This account isn't an admin. Ask the owner to enable admin access in Supabase.";
+    message.textContent = "Profile lookup failed: " + profileError.message + " (code: " + profileError.code + ")";
+    await sb.auth.signOut();
+    return;
+  }
+  if(!profile){
+    message.className = "msg error";
+    message.textContent = "No profile row found for this account. user id: " + user.id;
+    await sb.auth.signOut();
+    return;
+  }
+  if(!profile.is_admin){
+    message.className = "msg error";
+    message.textContent = "Profile found but is_admin is: " + JSON.stringify(profile.is_admin);
     await sb.auth.signOut();
     return;
   }
