@@ -36,13 +36,11 @@ button.secondary{background:var(--blue-100);color:var(--blue-500);}
 .msg.error{color:var(--danger);}
 .msg.success{color:var(--success);}
 
-/* login */
 .auth-wrap{max-width:380px;margin:60px auto;padding:0 20px;}
 .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;box-shadow:0 10px 30px rgba(28,100,242,.08);}
 .auth-card h1{color:var(--blue-500);margin-bottom:4px;}
 .auth-card p{color:var(--muted);font-size:13px;margin-bottom:16px;}
 
-/* layout */
 .top{
   background:linear-gradient(135deg,var(--blue-500),var(--blue-300));
   color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
@@ -58,7 +56,6 @@ button.secondary{background:var(--blue-100);color:var(--blue-500);}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;}
 
-/* chats layout */
 .chat-layout{display:flex;gap:14px;height:70vh;}
 .thread-list{width:260px;overflow-y:auto;border-right:1px solid var(--border);padding-right:10px;flex-shrink:0;}
 .thread-item{padding:10px;border-radius:10px;cursor:pointer;margin-bottom:4px;}
@@ -74,14 +71,12 @@ button.secondary{background:var(--blue-100);color:var(--blue-500);}
 .chat-input-row input{margin:0;flex:1;}
 .chat-input-row button{width:auto;}
 
-/* wallets */
 .user-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;}
 .user-row:last-child{border-bottom:0;}
 .balance-grid{display:grid;grid-template-columns:70px 1fr 80px;gap:8px;align-items:center;margin:6px 0;}
 .balance-grid input{margin:0;}
 .balance-grid button{width:auto;}
 
-/* transactions */
 .tx-table{width:100%;border-collapse:collapse;font-size:13px;}
 .tx-table th{text-align:left;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--border);}
 .tx-table td{padding:8px;border-bottom:1px solid var(--border);}
@@ -114,7 +109,6 @@ button.secondary{background:var(--blue-100);color:var(--blue-500);}
   </div>
 
   <div class="wrap">
-    <!-- CHATS -->
     <div class="panel active" id="panel-chats">
       <div class="card chat-layout">
         <div class="thread-list" id="threadList">
@@ -132,7 +126,6 @@ button.secondary{background:var(--blue-100);color:var(--blue-500);}
       </div>
     </div>
 
-    <!-- WALLETS -->
     <div class="panel" id="panel-wallets">
       <div class="card">
         <h3 style="margin-bottom:8px;">Users</h3>
@@ -144,7 +137,6 @@ button.secondary{background:var(--blue-100);color:var(--blue-500);}
       </div>
     </div>
 
-    <!-- TRANSACTIONS -->
     <div class="panel" id="panel-transactions">
       <div class="card">
         <h3 style="margin-bottom:8px;">All Transactions</h3>
@@ -160,15 +152,14 @@ button.secondary{background:var(--blue-100);color:var(--blue-500);}
 </div>
 
 <script>
-const SUPABASE_URL = "https://lwbgnjsmceafjzakcmnn.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_O5vR_kJEU_fQdM6KwX8oSQ_deSx96O9";
+const SUPABASE_URL = "https://ulvmypfkobqngnwoiqpe.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Yljia5UnGwKkT8vOHLEgWQ_K6ZOQF_X";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const COINS = ["BTC","ETH","USDT","BNB","SOL","XRP","DOGE"];
 let profilesById = {};
 let activeThreadUserId = null;
 
-/* ---------------- Auth ---------------- */
 async function login(){
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
@@ -236,7 +227,6 @@ sb.auth.getSession().then(async ({data:{session}}) => {
   }
 });
 
-/* ---------------- Tabs ---------------- */
 function setTab(el){
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
@@ -244,7 +234,6 @@ function setTab(el){
   document.getElementById("panel-" + el.dataset.panel).classList.add("active");
 }
 
-/* ---------------- Shared: profiles lookup ---------------- */
 async function loadProfiles(){
   const {data} = await sb.from("profiles").select("id,email,full_name");
   profilesById = {};
@@ -254,7 +243,6 @@ function emailFor(userId){
   return profilesById[userId]?.email || userId.slice(0,8) + "...";
 }
 
-/* ---------------- Support chats ---------------- */
 async function loadThreads(){
   const box = document.getElementById("threadList");
   const {data, error} = await sb
@@ -353,7 +341,6 @@ function subscribeRealtime(){
     .subscribe();
 }
 
-/* ---------------- Wallets ---------------- */
 async function loadUserList(){
   const box = document.getElementById("userList");
   const list = Object.values(profilesById);
@@ -402,7 +389,6 @@ async function saveBalance(userId, asset){
   msg.textContent = asset + " balance updated.";
 }
 
-/* ---------------- Transactions ---------------- */
 async function loadTransactions(){
   const body = document.getElementById("txBody");
   const {data, error} = await sb
