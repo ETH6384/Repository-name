@@ -440,11 +440,8 @@ select{
 </div>
 
 <script>
-/* ============================================================
-   CONFIG — replace with your own Supabase project credentials
-   ============================================================ */
-const SUPABASE_URL = "https://lwbgnjsmceafjzakcmnn.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_O5vR_kJEU_fQdM6KwX8oSQ_deSx96O9";
+const SUPABASE_URL = "https://ulvmypfkobqngnwoiqpe.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Yljia5UnGwKkT8vOHLEgWQ_K6ZOQF_X";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const COINS = [
@@ -457,23 +454,16 @@ const COINS = [
   {id:"dogecoin", symbol:"DOGE", name:"Dogecoin", icon:"Ð"}
 ];
 
-let livePrices = {}; // symbol -> {usd, change}
+let livePrices = {};
 
-/* ---------------- Deposit addresses ----------------
-   Only fill in an address here once you actually control that wallet.
-   Leave a coin blank until you have a real address for it — showing a
-   placeholder address would risk someone sending real funds you can't access.
-------------------------------------------------------------------------- */
 const DEPOSIT_ADDRESSES = {
   ETH:  { address: "0xCa3D4e661758b7c95B71071C3aB1FCd24C17cE3e", network: "Ethereum (ERC-20)" },
   USDT: { address: "TGXVAYuCyCph1ann5K27cKwsM5zEsxFPJP", network: "Tron (TRC-20) — do not send ERC-20 or BEP-20 USDT here" }
-  // BTC, BNB, SOL, XRP, DOGE: add here once you have real addresses for them
 };
 
 const authBox = document.getElementById("auth");
 const appBox = document.getElementById("app");
 
-/* ---------------- Auth screens ---------------- */
 function showLogin(){
   document.getElementById("loginBox").classList.remove("hidden");
   document.getElementById("registerBox").classList.add("hidden");
@@ -553,7 +543,6 @@ async function showDashboard(){
   initChat(user.id);
 }
 
-/* ---------------- Live prices + analysis ---------------- */
 function renderCoinList(){
   const box = document.getElementById("coinList");
   box.innerHTML = COINS.map(c => `
@@ -627,7 +616,6 @@ function filterCoins(){
   });
 }
 
-/* ---------------- Tabs / bottom nav (view switching) ---------------- */
 function setTab(el){
   document.querySelectorAll(".pillrow span").forEach(s => s.classList.remove("active"));
   el.classList.add("active");
@@ -653,7 +641,6 @@ function setNav(el){
   }
 }
 
-/* ---------------- Wallet ---------------- */
 async function loadWallet(){
   const box = document.getElementById("walletList");
   const {data, error} = await sb.from("wallets").select("asset,balance").order("asset");
@@ -698,7 +685,6 @@ function updateTotalBalance(){
   if(totalEl) totalEl.textContent = "$" + total.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
-/* ---------------- Transactions ---------------- */
 async function loadTransactions(){
   const box = document.getElementById("transactions");
   const {data, error} = await sb
@@ -728,11 +714,6 @@ async function loadTransactions(){
     </div>`).join("");
 }
 
-/* ---------------- Deposit / Withdraw / Swap / Transfer modal ----------------
-   Real deposit addresses show for coins you've configured in DEPOSIT_ADDRESSES.
-   Withdraw/Swap/Transfer still record a simulated demo entry — no real
-   blockchain calls happen here, and no private keys are used in this file.
-------------------------------------------------------------------------- */
 let currentAction = "deposit";
 
 function openModal(action, presetAsset){
@@ -833,11 +814,6 @@ async function submitModal(){
   setTimeout(closeModal, 900);
 }
 
-/* ---------------- Live support chat ----------------
-   Requires a "support_messages" table (see setup notes). Each user only
-   sees their own conversation; replies posted by you (the site owner)
-   show up instantly via Supabase Realtime.
-------------------------------------------------------------------------- */
 let chatUserId = null;
 
 function toggleChat(){
@@ -911,7 +887,6 @@ async function sendChatMessage(){
   appendChatMessage({sender:"user", message:text});
 }
 
-/* ---------------- Session bootstrap ---------------- */
 sb.auth.onAuthStateChange((event, session) => {
   if(session && session.user){
     showDashboard();
